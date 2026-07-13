@@ -1,42 +1,46 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
+import store from './store';
 import ProductList from './components/ProductList';
 import CartItem from './components/CartItem';
 import './App.css';
 
-const App = () => {
+function App() {
   const [currentPage, setCurrentPage] = useState('home');
-  const totalQuantity = useSelector(state => state.cart.totalQuantity);
+  const totalQuantity = useSelector(state =>
+    state.cart.items.reduce((sum, item) => sum + item.quantity, 0)
+  );
 
-  const handleGetStarted = () => {
-    setCurrentPage('products');
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   return (
-    <div className="app">
-      <nav className="navbar">
-        <div className="nav-links">
-          <span onClick={() => setCurrentPage('home')} className="nav-link">Home</span>
-          <span onClick={() => setCurrentPage('products')} className="nav-link">Plants</span>
-          <span onClick={() => setCurrentPage('cart')} className="nav-link">
-            Cart ({totalQuantity})
-          </span>
-        </div>
-      </nav>
-
-      {currentPage === 'home' && (
-        <div className="landing-page">
-          <h1>Paradise Nursery</h1>
-          <p>Your one-stop shop for beautiful houseplants</p>
-          <button onClick={handleGetStarted}>Get Started</button>
-        </div>
-      )}
-
-      {currentPage === 'products' && <ProductList setCurrentPage={setCurrentPage} />}
-
-      {currentPage === 'cart' && <CartItem setCurrentPage={setCurrentPage} />}
-    </div>
+    <Provider store={store}>
+      <div>
+        {currentPage === 'home' && (
+          <div className="landing-page">
+            <h1>Paradise Nursery</h1>
+            <p>Your one‑stop shop for houseplants</p>
+            <button onClick={() => handlePageChange('products')}>Get Started</button>
+          </div>
+        )}
+        {currentPage !== 'home' && (
+          <nav>
+            <button onClick={() => handlePageChange('home')}>Home</button>
+            <button onClick={() => handlePageChange('products')}>Plants</button>
+            <button onClick={() => handlePageChange('cart')}>
+              🛒 Cart ({totalQuantity})
+            </button>
+          </nav>
+        )}
+        {currentPage === 'products' && <ProductList />}
+        {currentPage === 'cart' && (
+          <CartItem onContinueShopping={() => handlePageChange('products')} />
+        )}
+      </div>
+    </Provider>
   );
-};
+}
 
 export default App;
